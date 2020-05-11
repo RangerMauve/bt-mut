@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-const btsync = require('./')
+const btmut = require('./')
 
 module.exports = require('yargs')
-  .scriptName('bit-sync')
+  .scriptName('bit-mut')
   .command('$0 [torrent]', 'Sync your folder with a torrent', (yargs) => {
     yargs.positional('torrent', {
       type: 'string',
@@ -27,7 +27,7 @@ async function sync ({ torrent, path, ...opts }) {
     console.log('Turning', path, 'into torrent')
   }
 
-  const torrentInstance = await btsync(opts).sync(path, torrent)
+  const torrentInstance = await btmut(opts).sync(path, torrent)
 
   if (torrent) {
     console.log('Resolved magnet, performing sync')

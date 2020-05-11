@@ -2,14 +2,14 @@ const path = require('path')
 const MutableWebTorrent = require('mutable-webtorrent')
 const fs = require('fs-extra')
 
-const DEFAULT_SECRET_STORAGE = require('env-paths')('bt-sync').config
+const DEFAULT_SECRET_STORAGE = require('env-paths')('bt-mut').config
 const SECRET_FILE_EXTENSION = '.key'
 const BT_FILE = '.bt'
 const BTPK_PREFIX = 'urn:btpk:'
 
-module.exports = (opts) => new BtSync(opts)
+module.exports = (opts) => new BtMut(opts)
 
-class BtSync {
+class BtMut {
   constructor (opts) {
     this.opts = opts
     this.webtorrent = opts.webtorrent || new MutableWebTorrent(opts)

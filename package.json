@@ -1,5 +1,5 @@
 {
-  "name": "bt-sync",
+  "name": "bt-mut",
   "version": "0.1.0",
   "description": "Sync folders with mutable Bittorrent links",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RangerMauve/bt-sync.git"
+    "url": "git+https://github.com/RangerMauve/bt-mut.git"
   },
   "keywords": [
     "bittorrent",
@@ -21,9 +21,9 @@
   "author": "rangermauve <ranger@mauve.moe> (https://mauve.moe/)",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/RangerMauve/bt-sync/issues"
+    "url": "https://github.com/RangerMauve/bt-mut/issues"
   },
-  "homepage": "https://github.com/RangerMauve/bt-sync#readme",
+  "homepage": "https://github.com/RangerMauve/bt-mut#readme",
   "dependencies": {
     "env-paths": "^2.2.0",
     "fs-extra": "^9.0.0",
