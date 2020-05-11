@@ -21,19 +21,29 @@ module.exports = require('yargs')
   .argv
 
 async function sync ({ torrent, path, ...opts }) {
+  const mut = btmut(opts)
+
+  const isInitialized = await mut.isInitialized(path)
+
   if (torrent) {
     console.log('Syncing', torrent, 'to', path)
-  } else {
+  } else if (!isInitialized) {
     console.log('Turning', path, 'into torrent')
+  } else {
+    console.log('Syncing torrent')
   }
 
-  const torrentInstance = await btmut(opts).sync(path, torrent)
+  const torrentInstance = await mut.sync(path, torrent)
 
   if (torrent) {
     console.log('Resolved magnet, performing sync')
   } else {
     const { magnetURI } = torrentInstance
-    console.log('Generated magnet:')
+
+    if (!isInitialized) {
+      console.log('Generated magnet:')
+    }
+
     console.log(magnetURI)
   }
 

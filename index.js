@@ -2,7 +2,7 @@ const path = require('path')
 const MutableWebTorrent = require('mutable-webtorrent')
 const fs = require('fs-extra')
 
-const DEFAULT_SECRET_STORAGE = require('env-paths')('bt-mut').config
+const DEFAULT_SECRET_STORAGE = require('env-paths')('bt-mut', { suffix: '' }).config
 const SECRET_FILE_EXTENSION = '.key'
 const BT_FILE = '.bt'
 const BTPK_PREFIX = 'urn:btpk:'
@@ -41,7 +41,7 @@ class BtMut {
 
       // If it is, check if we have the private key for the mutable torrent
       // if we don't sync the torrent to the local folder
-      if (!hasSecret(publicKeyString, secretStorage)) return this.syncTo(magnet, path)
+      if (!(await hasSecret(publicKeyString, secretStorage))) return this.syncTo(magnet, path)
 
       const secretKey = await loadSecret(publicKeyString, secretStorage)
 
@@ -119,6 +119,10 @@ class BtMut {
     torrent.magnetURI = magnetURI
 
     return torrent
+  }
+
+  async isInitialized (path) {
+    return hasBTFile(path)
   }
 }
 
