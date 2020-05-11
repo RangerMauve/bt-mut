@@ -1,6 +1,6 @@
 {
   "name": "bt-mut",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sync folders with mutable Bittorrent links",
   "main": "index.js",
   "bin": "bin.js",
