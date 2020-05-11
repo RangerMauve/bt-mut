@@ -1,6 +1,6 @@
 {
   "name": "bt-sync",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Sync folders with mutable Bittorrent links",
   "main": "index.js",
   "scripts": {
@@ -27,7 +27,7 @@
   "dependencies": {
     "env-paths": "^2.2.0",
     "fs-extra": "^9.0.0",
-    "mutable-webtorrent": "^1.3.0",
+    "mutable-webtorrent": "github:rangermauve/mutable-webtorrent#nat-traversal",
     "yargs": "^15.3.1"
   }
 }

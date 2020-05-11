@@ -7,13 +7,8 @@ const SECRET_FILE_EXTENSION = '.key'
 const BT_FILE = '.bt'
 const BTPK_PREFIX = 'urn:btpk:'
 
-module.exports = async ({ torrent, path, ...opts }) => {
-  const btsync = new BtSync(opts)
+module.exports = (opts) => new BtSync(opts)
 
-  if (path || torrent) await btsync.sync(path, torrent)
-
-  return btsync
-}
 class BtSync {
   constructor (opts) {
     this.opts = opts
@@ -21,10 +16,8 @@ class BtSync {
   }
 
   async sync (path, torrent) {
-    if (torrent) await this.syncTo(torrent, path)
-    else await this.syncFrom(path)
-
-    return this
+    if (torrent) return this.syncTo(torrent, path)
+    else return this.syncFrom(path)
   }
 
   async syncFrom (path) {
@@ -53,10 +46,10 @@ class BtSync {
       const secretKey = await loadSecret(publicKeyString, secretStorage)
 
       // If we do, update the mutable torrent to the folder
-      await this.updateMutable(path, publicKeyString, secretKey)
+      return this.updateMutable(path, publicKeyString, secretKey)
     } else {
       // If there's no .bt file, create a mutable torrent
-      await this.createMutable(path)
+      return this.createMutable(path)
     }
   }
 
@@ -66,17 +59,21 @@ class BtSync {
       this.webtorrent.add(torrentId, { path }, resolve)
     })
 
-    let magnet = torrent.magnetURI
+    let magnetURI = torrent.magnetURI
     if (torrent.publicKey) {
       const publicKeyString = torrent.publicKey.toString('hex')
-      magnet = `magnet:?xs=${BTPK_PREFIX}${publicKeyString}`
+      magnetURI = `${magnetURI}&xs=${BTPK_PREFIX}${publicKeyString}`
     }
 
+    torrent.magnetURI = magnetURI
+
     // Write the torrent info to a `.bt` file which has a magnet link
-    await saveBTFile(path, magnet)
+    await saveBTFile(path, magnetURI)
 
     // Start syncing the folder to the torrent
     // Output progress to the CLI
+
+    return torrent
   }
 
   async createMutable (path) {
@@ -97,21 +94,31 @@ class BtSync {
 
     const publicKeyString = publicKey.toString('hex')
 
-    const magnet = `magnet:?xs=${BTPK_PREFIX}${publicKeyString}`
+    const magnetURI = `magnet:?xs=${BTPK_PREFIX}${publicKeyString}`
 
-    await saveBTFile(path, magnet)
+    await saveBTFile(path, magnetURI)
 
-    await this.updateMutable(path, publicKey, secretKey)
+    return this.updateMutable(path, publicKey, secretKey)
   }
 
   async updateMutable (path, publicKey, secretKey) {
     const torrent = await new Promise((resolve) => {
       this.webtorrent.seed(path, resolve)
     })
+    torrent.on('wire', () => console.log('Got peer'))
 
     const { infoHash } = torrent
 
-    this.webtorrent.publish(publicKey, secretKey, infoHash)
+    const { magnetURI } = await new Promise((resolve, reject) => {
+      this.webtorrent.publish(publicKey, secretKey, infoHash, (err, result) => {
+        if (err) reject(err)
+        else resolve(result)
+      })
+    })
+
+    torrent.magnetURI = magnetURI
+
+    return torrent
   }
 }
 
@@ -138,14 +145,15 @@ function btLocation (location) {
 }
 
 async function hasSecret (publicKey, secretStorage) {
-// Check whether the secret key file exists for the given public key
+  // Check whether the secret key file exists for the given public key
   const location = secretLocation(publicKey, secretStorage)
 
   return fs.pathExists(location)
 }
 
 async function saveSecret (publicKey, secretKey, secretStorage) {
-// Save the secret key to the secret storage
+  // Save the secret key to the secret storage
+  await fs.ensureDir(secretStorage)
   const location = secretLocation(publicKey, secretStorage)
 
   return fs.writeFile(location, secretKey)
