@@ -29,7 +29,7 @@
     "debug": "^4.1.1",
     "env-paths": "^2.2.0",
     "fs-extra": "^9.0.0",
-    "mutable-webtorrent": "github:rangermauve/mutable-webtorrent#nat-traversal",
+    "mutable-webtorrent": "^1.3.1",
     "yargs": "^15.3.1"
   }
 }

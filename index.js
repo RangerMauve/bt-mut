@@ -28,7 +28,7 @@ class BtMut {
     }
 
     // TODO: Deal with `torrent` values that aren't magnets
-    await saveBTFile(torrent)
+    await saveBTFile(path, torrent)
 
     const torrentInstance = await new Promise((resolve) => {
       debug('Adding torrent to folder')
@@ -73,7 +73,6 @@ class BtMut {
 
     const publicKey = Buffer.from(publicKeyString, 'hex')
     const secretKey = await loadSecret(publicKeyString, this.secretStorage, opts)
-
     // Make sure we're turning the contents into a torrent, not the folder itself
     if (!path.endsWith(sep)) path += sep
 
@@ -88,8 +87,8 @@ class BtMut {
     const { infoHash } = torrent
 
     const { magnetURI, sequence } = await new Promise((resolve, reject) => {
-      debug('Publishing update to DHT')
-      this.webtorrent.publish(publicKey.toString('hex'), secretKey, infoHash, (err, result) => {
+      debug('Publishing update to DHT', publicKey, secretKey)
+      this.webtorrent.publish(publicKey.toString('hex'), secretKey.toString('hex'), infoHash, (err, result) => {
         if (err) reject(err)
         else resolve(result)
       })
@@ -110,7 +109,7 @@ class BtMut {
     if (!secretKey && !publicKey) {
       seed ? debug('Generating keys with seed') : debug('Generating keys without seed')
       // Generate keypair
-      const pair = this.webtorrent.createKeypair(seed)
+      const pair = this.webtorrent.createKeypair(seed ? Buffer.from(seed, 'hex') : null)
       secretKey = pair.secretKey
       publicKey = pair.publicKey
     }
@@ -168,14 +167,16 @@ async function saveSecret (publicKey, secretKey, secretStorage) {
   await fs.ensureDir(secretStorage)
   const location = secretLocation(publicKey, secretStorage)
 
-  return fs.writeFile(location, secretKey)
+  return fs.writeFile(location, secretKey.toString('hex'), 'utf8')
 }
 
 async function loadSecret (publicKey, secretStorage, { secretKey } = {}) {
   if (secretKey) return secretKey
   const location = secretLocation(publicKey, secretStorage)
 
-  return fs.readFile(location)
+  const read = await fs.readFile(location, 'utf8')
+
+  return Buffer.from(read, 'hex')
 }
 
 function secretLocation (publicKey, secretStorage) {
